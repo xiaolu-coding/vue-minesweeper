@@ -20,10 +20,17 @@ const state = reactive(
       { length: WIDTH },
       (_, x): BlockState => ({ x, y, adjacentMines: 0, revealed: false }))))
 
-function generateMines() {
+function generateMines(initial: BlockState) {
   for (const row of state) {
     // 0.1概率生成炸弹
-    for (const block of row) block.mine = Math.random() < 0.4
+    for (const block of row) {
+      // 当点上面下面不会有炸弹
+      if (Math.abs(initial.x - block.x) < 1)
+        continue
+      if (Math.abs(initial.y - block.y) < 1)
+        continue
+      block.mine = Math.random() < 0.2
+    }
   }
 }
 
@@ -55,33 +62,43 @@ function updateNumbers() {
   state.forEach((raw, y) => {
     raw.forEach((block, x) => {
       if (block.mine)
-        // 如果是炸弹就跳过
         return
       directions.forEach(([dx, dy]) => {
         const x2 = x + dx
         const y2 = y + dy
         // 如果超出边界
-        if (x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT) return
-        if (state[x2][y2].mine) block.adjacentMines++
+        if (x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT)
+          return
+
+        if (state[y2][x2].mine)
+          block.adjacentMines += 1
       })
     })
   })
 }
 
+let mineGenerated = false
+const dev = true
+
 function onClick(block: BlockState) {
+  if (!mineGenerated) {
+    generateMines(block)
+    updateNumbers()
+    mineGenerated = true
+  }
   block.revealed = true
+  if (block.mine)
+    alert('booooooooooom!!!')
 }
 
 function getBlockClass(block: BlockState) {
   // 如果是没翻开的
   if (!block.revealed)
-    return ''
+    return 'bg-gray-500/10'
   // 翻开后根据是否是炸弹，给样式
   return block.mine ? 'bg-red-500/30' : numberColors[block.adjacentMines]
 }
 
-generateMines()
-updateNumbers()
 </script>
 
 <template>
@@ -103,12 +120,13 @@ updateNumbers()
           justify-center
           w-10
           h-10
+          m="0.1"
           border="1 gray-400/25"
           hover="bg-gray/30"
           :class="getBlockClass(block)"
           @click="onClick(block)"
         >
-          <template v-if="block.revealed">
+          <template v-if="block.revealed || dev">
             <div v-if="block.mine" i-mdi-mine></div>
             <div v-else>
               {{ block.adjacentMines }}

@@ -5,7 +5,7 @@ import { reactive } from '@vue/runtime-dom'
 interface BlockState {
   x: number
   y: number
-  revealed?: boolean
+  revealed: boolean // 是否翻开
   mine?: boolean // 是否是炸弹
   flagged?: boolean
   adjacentMines: number // 周围炸弹数量
@@ -18,7 +18,7 @@ const state = reactive(
   Array.from({ length: HEIGHT }, (_, y) =>
     Array.from(
       { length: WIDTH },
-      (_, x): BlockState => ({ x, y, adjacentMines: 0 }))))
+      (_, x): BlockState => ({ x, y, adjacentMines: 0, revealed: false }))))
 
 function generateMines() {
   for (const row of state) {
@@ -68,9 +68,15 @@ function updateNumbers() {
   })
 }
 
-function onClick(x: number, y: number) {}
+function onClick(block: BlockState) {
+  block.revealed = true
+}
 
 function getBlockClass(block: BlockState) {
+  // 如果是没翻开的
+  if (!block.revealed)
+    return ''
+  // 翻开后根据是否是炸弹，给样式
   return block.mine ? 'bg-red-500/30' : numberColors[block.adjacentMines]
 }
 
@@ -90,7 +96,7 @@ updateNumbers()
         justify-center
       >
         <button
-          v-for="(item, x) in row"
+          v-for="(block, x) in row"
           :key="x"
           flex="~"
           items-center
@@ -99,13 +105,15 @@ updateNumbers()
           h-10
           border="1 gray-400/25"
           hover="bg-gray/30"
-          :class="getBlockClass(item)"
-          @click="onClick(x, y)"
+          :class="getBlockClass(block)"
+          @click="onClick(block)"
         >
-          <div v-if="item.mine" i-mdi-mine></div>
-          <div v-else>
-            {{ item.adjacentMines }}
-          </div>
+          <template v-if="block.revealed">
+            <div v-if="block.mine" i-mdi-mine></div>
+            <div v-else>
+              {{ block.adjacentMines }}
+            </div>
+          </template>
         </button>
       </div>
     </div>

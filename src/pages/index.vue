@@ -24,12 +24,12 @@ function generateMines(initial: BlockState) {
   for (const row of state) {
     // 0.1概率生成炸弹
     for (const block of row) {
-      // 当点上面下面不会有炸弹
-      if (Math.abs(initial.x - block.x) < 1)
+      // 当点下之后，周围不会有炸弹
+      if (Math.abs(initial.x - block.x) <= 1)
         continue
-      if (Math.abs(initial.y - block.y) < 1)
+      if (Math.abs(initial.y - block.y) <= 1)
         continue
-      block.mine = Math.random() < 0.2
+      block.mine = Math.random() < 0.4
     }
   }
 }
@@ -63,18 +63,42 @@ function updateNumbers() {
     raw.forEach((block, x) => {
       if (block.mine)
         return
-      directions.forEach(([dx, dy]) => {
-        const x2 = x + dx
-        const y2 = y + dy
-        // 如果超出边界
-        if (x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT)
-          return
 
-        if (state[y2][x2].mine)
-          block.adjacentMines += 1
-      })
+      getSiblings(block)
+        .forEach((b) => {
+          if (b.mine)
+            block.adjacentMines += 1
+        })
     })
   })
+}
+
+// 当遇到0的时候把旁边炸开
+function expendZero(block: BlockState) {
+  // 如果周围炸弹数不是0 或者已经被翻开，就不管
+  if (block.adjacentMines)
+    return
+  // 如果周围炸弹数量是0 递归去炸
+  getSiblings(block).forEach((s) => {
+    // 如果没翻开，就去翻开，然后去炸开旁边的为0的
+    if (!s.revealed) {
+      s.revealed = true
+      expendZero(s)
+    }
+  })
+}
+
+// 取周围的，得到炸弹数量
+function getSiblings(block: BlockState) {
+  return directions.map(([dx, dy]) => {
+    const x2 = block.x + dx
+    const y2 = block.y + dy
+    // 如果超出边界
+    if (x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT)
+      return undefined
+
+    return state[y2][x2]
+  }).filter(Boolean) as BlockState[]
 }
 
 let mineGenerated = false
@@ -89,6 +113,8 @@ function onClick(block: BlockState) {
   block.revealed = true
   if (block.mine)
     alert('booooooooooom!!!')
+
+  expendZero(block)
 }
 
 function getBlockClass(block: BlockState) {

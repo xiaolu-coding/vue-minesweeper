@@ -102,9 +102,16 @@ function getSiblings(block: BlockState) {
 }
 
 let mineGenerated = false
-const dev = true
+const dev = false
 
-function onClick(block: BlockState) {
+function onRightClick(block: BlockState) {
+  // 如果已经打开了，没必要插旗子
+  if (block.revealed)
+    return
+  block.flagged = !block.flagged
+}
+
+function onClick(e: MouseEvent, block: BlockState) {
   if (!mineGenerated) {
     generateMines(block)
     updateNumbers()
@@ -118,9 +125,11 @@ function onClick(block: BlockState) {
 }
 
 function getBlockClass(block: BlockState) {
+  if (block.flagged)
+    return 'bg-ray-500/10'
   // 如果是没翻开的
   if (!block.revealed)
-    return 'bg-gray-500/10'
+    return 'bg-gray-500/10 hover:bg-gray/30'
   // 翻开后根据是否是炸弹，给样式
   return block.mine ? 'bg-red-500/30' : numberColors[block.adjacentMines]
 }
@@ -148,11 +157,14 @@ function getBlockClass(block: BlockState) {
           h-10
           m="0.1"
           border="1 gray-400/25"
-          hover="bg-gray/30"
           :class="getBlockClass(block)"
-          @click="onClick(block)"
+          @click="onClick($event, block)"
+          @contextmenu.prevent="onRightClick(block)"
         >
-          <template v-if="block.revealed || dev">
+          <template v-if="block.flagged">
+            <div i-mdi-flag text-red></div>
+          </template>
+          <template v-else-if="block.revealed || dev">
             <div v-if="block.mine" i-mdi-mine></div>
             <div v-else>
               {{ block.adjacentMines }}

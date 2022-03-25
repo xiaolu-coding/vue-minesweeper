@@ -1,49 +1,30 @@
 <script setup lang="ts">
-const name = $ref('')
+import { reactive } from '@vue/runtime-dom'
 
-const router = useRouter()
-const go = () => {
-  if (name)
-    router.push(`/hi/${encodeURIComponent(name)}`)
-}
+const WIDTH = 10
+const HEIGHT = 10
+// 生成10x10的格子
+const state = reactive(
+  Array.from({ length: HEIGHT }, (_, y) =>
+    Array.from({ length: WIDTH }, (_, x) => y * 10 + x + 1)))
+
+function onClick(x: number, y: number) {}
 </script>
 
 <template>
   <div>
-    <div i-carbon-campsite text-4xl inline-block />
-    <p>
-      <a rel="noreferrer" href="https://github.com/antfu/vitesse-lite" target="_blank">
-        Vitesse Lite
-      </a>
-    </p>
-    <p>
-      <em text-sm op75>Opinionated Vite Starter Template</em>
-    </p>
-
-    <div py-4 />
-
-    <input
-      id="input"
-      v-model="name"
-      placeholder="What's your name?"
-      type="text"
-      autocomplete="false"
-      p="x-4 y-2"
-      w="250px"
-      text="center"
-      bg="transparent"
-      border="~ rounded gray-200 dark:gray-700"
-      outline="none active:none"
-      @keydown.enter="go"
-    >
-
-    <div>
+    Minesweeper
+    <div v-for="(row, y) in state" :key="y">
       <button
-        class="m-3 text-sm btn"
-        :disabled="!name"
-        @click="go"
+        v-for="(item, x) in row"
+        :key="x"
+        w-10
+        h-10
+        border="~"
+        hover:bg-gray
+        @click="onClick(x, y)"
       >
-        Go
+        {{ item }}
       </button>
     </div>
   </div>

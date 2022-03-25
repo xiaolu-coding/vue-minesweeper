@@ -2,8 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "module": "ESNext",
-    "target": "es2016",
-    "lib": ["DOM", "ESNext"],
+    "target": "es2019",
+    "lib": ["DOM", "ESNext", "ES2021"],
     "strict": true,
     "esModuleInterop": true,
     "incremental": false,
@@ -15,7 +15,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": [
       "vite/client",
-      "vite-plugin-pages/client"
+      // "vite-plugin-pages/client"
     ],
     "paths": {
       "~/*": ["src/*"]

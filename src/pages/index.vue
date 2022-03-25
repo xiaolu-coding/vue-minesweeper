@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive } from '@vue/runtime-dom'
+import { ref, watchEffect } from '@vue/runtime-dom'
 
 // 格子状态
 interface BlockState {
@@ -11,17 +11,17 @@ interface BlockState {
   adjacentMines: number // 周围炸弹数量
 }
 
-const WIDTH = 10
-const HEIGHT = 10
+const WIDTH = 5
+const HEIGHT = 5
 // 生成10x10的格子
-const state = reactive(
+const state = ref(
   Array.from({ length: HEIGHT }, (_, y) =>
     Array.from(
       { length: WIDTH },
       (_, x): BlockState => ({ x, y, adjacentMines: 0, revealed: false }))))
 
 function generateMines(initial: BlockState) {
-  for (const row of state) {
+  for (const row of state.value) {
     // 0.1概率生成炸弹
     for (const block of row) {
       // 当点下之后，周围不会有炸弹
@@ -29,7 +29,7 @@ function generateMines(initial: BlockState) {
         continue
       if (Math.abs(initial.y - block.y) <= 1)
         continue
-      block.mine = Math.random() < 0.4
+      block.mine = Math.random() < 0.2
     }
   }
 }
@@ -59,7 +59,7 @@ const numberColors = [
 
 // 计算周围有几个炸弹
 function updateNumbers() {
-  state.forEach((raw, y) => {
+  state.value.forEach((raw, y) => {
     raw.forEach((block, x) => {
       if (block.mine)
         return
@@ -97,7 +97,7 @@ function getSiblings(block: BlockState) {
     if (x2 < 0 || x2 >= WIDTH || y2 < 0 || y2 >= HEIGHT)
       return undefined
 
-    return state[y2][x2]
+    return state.value[y2][x2]
   }).filter(Boolean) as BlockState[]
 }
 
@@ -109,6 +109,7 @@ function onRightClick(block: BlockState) {
   if (block.revealed)
     return
   block.flagged = !block.flagged
+  checkGameState()
 }
 
 function onClick(e: MouseEvent, block: BlockState) {
@@ -122,6 +123,7 @@ function onClick(e: MouseEvent, block: BlockState) {
     alert('booooooooooom!!!')
 
   expendZero(block)
+  checkGameState()
 }
 
 function getBlockClass(block: BlockState) {
@@ -132,6 +134,21 @@ function getBlockClass(block: BlockState) {
     return 'bg-gray-500/10 hover:bg-gray/30'
   // 翻开后根据是否是炸弹，给样式
   return block.mine ? 'bg-red-500/30' : numberColors[block.adjacentMines]
+}
+
+// watchEffect(checkGameState)
+
+function checkGameState() {
+  if (!mineGenerated) // 如果没有生成炸弹
+    return
+  const blocks = state.value.flat()
+
+  if (blocks.every(block => block.revealed || block.flagged)) {
+    if (blocks.every(block => block.flagged && !block.mine))
+      alert('you cheat!')
+    else
+      alert('you win!')
+  }
 }
 
 </script>

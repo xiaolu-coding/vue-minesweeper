@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref } from '@vue/runtime-dom'
-import type { BlockState } from '~/types'
 import { isDev, toggleDev } from '~/composables'
 import { GamePlay } from '~/composables/logic'
 

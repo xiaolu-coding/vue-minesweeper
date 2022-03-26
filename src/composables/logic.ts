@@ -14,12 +14,14 @@ const directions = [
 export class GamePlay {
   state = ref<BlockState[][]>([])
   mineGenerated = false
+  gameState = ref<'play' | 'won' | 'lose'>('play')
   constructor(public width: number, public height: number) {
     this.reset()
   }
 
   // 重置
   reset() {
+    this.gameState.value = 'play'
     this.mineGenerated = false
     this.state.value = Array.from({ length: this.height }, (_, y) =>
       Array.from(
@@ -87,7 +89,9 @@ export class GamePlay {
   }
 
   onRightClick(block: BlockState) {
-  // 如果已经打开了，没必要插旗子
+    if (this.gameState.value !== 'play')
+      return
+    // 如果已经打开了，没必要插旗子
     if (block.revealed)
       return
     block.flagged = !block.flagged
@@ -95,14 +99,18 @@ export class GamePlay {
   }
 
   onClick(block: BlockState) {
+    if (this.gameState.value !== 'play')
+      return
     if (!this.mineGenerated) {
       this.generateMines(this.state.value, block)
       this.mineGenerated = true
     }
     block.revealed = true
-    if (block.mine)
-      // eslint-disable-next-line no-alert
-      alert('booooooooooom!!!')
+    if (block.mine) {
+      this.gameState.value = 'lose'
+      this.showAllMines()
+      return
+    }
 
     this.expendZero(block)
     this.checkGameState()
@@ -114,12 +122,19 @@ export class GamePlay {
     const blocks = this.state.value.flat()
 
     if (blocks.every(block => block.revealed || block.flagged)) {
-      if (blocks.every(block => block.flagged && !block.mine))
-        // eslint-disable-next-line no-alert
-        alert('you cheat!')
-      else
-        // eslint-disable-next-line no-alert
-        alert('you win!')
+      if (blocks.some(block => block.flagged && !block.mine)) {
+        this.gameState.value = 'lose'
+        this.showAllMines()
+      }
+      else { this.gameState.value = 'won' }
     }
+  }
+
+  // 显示所有炸弹
+  showAllMines() {
+    this.state.value.flat().forEach((block) => {
+      if (block.mine)
+        block.revealed = true
+    })
   }
 }

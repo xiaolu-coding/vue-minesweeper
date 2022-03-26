@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import type { BlockState } from '~/types'
 
 const directions = [
@@ -11,22 +12,34 @@ const directions = [
   [1, 1], // 右下
 ]
 
+interface GameState {
+  board: BlockState[][]
+  mineGenerated: boolean
+  gameState: 'play' | 'won' | 'lose'
+}
+
 export class GamePlay {
-  state = ref<BlockState[][]>([])
+  state = ref() as Ref<GameState>
   mineGenerated = false
   gameState = ref<'play' | 'won' | 'lose'>('play')
   constructor(public width: number, public height: number) {
     this.reset()
   }
 
+  get board() {
+    return this.state.value?.board
+  }
+
   // 重置
   reset() {
-    this.gameState.value = 'play'
-    this.mineGenerated = false
-    this.state.value = Array.from({ length: this.height }, (_, y) =>
-      Array.from(
-        { length: this.width },
-        (_, x): BlockState => ({ x, y, adjacentMines: 0, revealed: false })))
+    this.state.value = {
+      mineGenerated: false,
+      gameState: 'play',
+      board: Array.from({ length: this.height }, (_, y) =>
+        Array.from(
+          { length: this.width },
+          (_, x): BlockState => ({ x, y, adjacentMines: 0, revealed: false }))),
+    }
   }
 
   generateMines(state: BlockState[][], initial: BlockState) {
@@ -84,12 +97,12 @@ export class GamePlay {
       if (x2 < 0 || x2 >= this.width || y2 < 0 || y2 >= this.height)
         return undefined
 
-      return this.state.value[y2][x2]
+      return this.board[y2][x2]
     }).filter(Boolean) as BlockState[]
   }
 
   onRightClick(block: BlockState) {
-    if (this.gameState.value !== 'play')
+    if (this.state.value.gameState !== 'play')
       return
     // 如果已经打开了，没必要插旗子
     if (block.revealed)
@@ -99,15 +112,15 @@ export class GamePlay {
   }
 
   onClick(block: BlockState) {
-    if (this.gameState.value !== 'play')
+    if (this.state.value.gameState !== 'play')
       return
-    if (!this.mineGenerated) {
-      this.generateMines(this.state.value, block)
-      this.mineGenerated = true
+    if (!this.state.value.mineGenerated) {
+      this.generateMines(this.board, block)
+      this.state.value.mineGenerated = true
     }
     block.revealed = true
     if (block.mine) {
-      this.gameState.value = 'lose'
+      this.state.value.gameState = 'lose'
       this.showAllMines()
       return
     }
@@ -117,22 +130,22 @@ export class GamePlay {
   }
 
   checkGameState() {
-    if (!this.mineGenerated) // 如果没有生成炸弹
+    if (!this.state.value.mineGenerated) // 如果没有生成炸弹
       return
-    const blocks = this.state.value.flat()
+    const blocks = this.board.flat()
 
     if (blocks.every(block => block.revealed || block.flagged)) {
       if (blocks.some(block => block.flagged && !block.mine)) {
-        this.gameState.value = 'lose'
+        this.state.value.gameState = 'lose'
         this.showAllMines()
       }
-      else { this.gameState.value = 'won' }
+      else { this.state.value.gameState = 'won' }
     }
   }
 
   // 显示所有炸弹
   showAllMines() {
-    this.state.value.flat().forEach((block) => {
+    this.board.flat().forEach((block) => {
       if (block.mine)
         block.revealed = true
     })

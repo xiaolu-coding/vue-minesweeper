@@ -1,16 +1,7 @@
 <script setup lang="ts">
-import { ref, watchEffect } from '@vue/runtime-dom'
-
-// 格子状态
-interface BlockState {
-  x: number
-  y: number
-  revealed: boolean // 是否翻开
-  mine?: boolean // 是否是炸弹
-  flagged?: boolean
-  adjacentMines: number // 周围炸弹数量
-}
-
+import { ref } from '@vue/runtime-dom'
+import type { BlockState } from '~/types'
+import MineBlock from '~/components/MineBlock.vue'
 const WIDTH = 5
 const HEIGHT = 5
 // 生成10x10的格子
@@ -43,18 +34,6 @@ const directions = [
   [-1, 1], // 左下
   [1, -1], // 右上
   [1, 1], // 右下
-]
-
-const numberColors = [
-  'text-transparent',
-  'text-blue-500',
-  'text-green-500',
-  'text-yellow-500',
-  'text-orange-500',
-  'text-red-500',
-  'text-purple-500',
-  'text-pink-500',
-  'text-teal-500',
 ]
 
 // 计算周围有几个炸弹
@@ -102,7 +81,6 @@ function getSiblings(block: BlockState) {
 }
 
 let mineGenerated = false
-const dev = false
 
 function onRightClick(block: BlockState) {
   // 如果已经打开了，没必要插旗子
@@ -112,7 +90,7 @@ function onRightClick(block: BlockState) {
   checkGameState()
 }
 
-function onClick(e: MouseEvent, block: BlockState) {
+function onClick(block: BlockState) {
   if (!mineGenerated) {
     generateMines(block)
     updateNumbers()
@@ -124,16 +102,6 @@ function onClick(e: MouseEvent, block: BlockState) {
 
   expendZero(block)
   checkGameState()
-}
-
-function getBlockClass(block: BlockState) {
-  if (block.flagged)
-    return 'bg-ray-500/10'
-  // 如果是没翻开的
-  if (!block.revealed)
-    return 'bg-gray-500/10 hover:bg-gray/30'
-  // 翻开后根据是否是炸弹，给样式
-  return block.mine ? 'bg-red-500/30' : numberColors[block.adjacentMines]
 }
 
 // watchEffect(checkGameState)
@@ -164,30 +132,7 @@ function checkGameState() {
         items-center
         justify-center
       >
-        <button
-          v-for="(block, x) in row"
-          :key="x"
-          flex="~"
-          items-center
-          justify-center
-          w-10
-          h-10
-          m="0.1"
-          border="1 gray-400/25"
-          :class="getBlockClass(block)"
-          @click="onClick($event, block)"
-          @contextmenu.prevent="onRightClick(block)"
-        >
-          <template v-if="block.flagged">
-            <div i-mdi-flag text-red></div>
-          </template>
-          <template v-else-if="block.revealed || dev">
-            <div v-if="block.mine" i-mdi-mine></div>
-            <div v-else>
-              {{ block.adjacentMines }}
-            </div>
-          </template>
-        </button>
+        <MineBlock v-for="(block, x) in row" :key="x" :block="block" @click="onClick(block)" @contextmenu.prevent="onRightClick(block)" />
       </div>
     </div>
   </div>

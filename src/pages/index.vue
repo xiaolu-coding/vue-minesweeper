@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from '@vue/runtime-dom'
 import type { BlockState } from '~/types'
-import MineBlock from '~/components/MineBlock.vue'
+import { isDev, toggleDev } from '~/composables'
+
 const WIDTH = 5
 const HEIGHT = 5
 // 生成10x10的格子
@@ -124,6 +125,9 @@ function checkGameState() {
 <template>
   <div>
     Minesweeper
+    <button @click="toggleDev">
+      {{ isDev }}
+    </button>
     <div p5>
       <div
         v-for="(row, y) in state"

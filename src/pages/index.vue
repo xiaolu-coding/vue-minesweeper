@@ -10,6 +10,20 @@ const mineCount = computed(() => {
   return play.blocks.reduce((a, b) => a + (b.mine ? 1 : 0), 0)
 })
 
+function newGame(difficulty: 'easy' | 'medium' | 'hard') {
+  switch (difficulty) {
+    case 'easy':
+      play.reset(9, 9, 10)
+      break
+    case 'medium':
+      play.reset(16, 16, 40)
+      break
+    case 'hard':
+      play.reset(30, 16, 99)
+      break
+  }
+}
+
 watchEffect(() => {
   play.checkGameState()
 })
@@ -18,6 +32,20 @@ watchEffect(() => {
 <template>
   <div>
     Minesweeper
+    <div flex="~ gap1" justify-center p4>
+      <button btn @click="play.reset()">
+        NEW GAME
+      </button>
+      <button btn @click="newGame('easy')">
+        EASY
+      </button>
+      <button btn @click="newGame('medium')">
+        MEDIUM
+      </button>
+      <button btn @click="newGame('hard')">
+        HARD
+      </button>
+    </div>
     <div p5 w-full overflow-auto>
       <div
         v-for="(row, y) in state"
@@ -39,9 +67,6 @@ watchEffect(() => {
     <div flex="~ gap-1" justify-center>
       <button btn @click="toggleDev()">
         {{ isDev ? 'DEV' : 'NORMAL' }}
-      </button>
-      <button btn @click="play.reset()">
-        RESET
       </button>
     </div>
   </div>

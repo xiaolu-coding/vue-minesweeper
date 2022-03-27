@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // import { isDev, toggleDev } from '~/composables'
 import { GamePlay } from '~/composables/logic'
+import type { diffcult } from '~/composables/logic'
 
 const play = new GamePlay(12, 12, 12)
 useStorage('vue-minesweeper', play.state)
@@ -14,16 +15,20 @@ const mineRest = $computed(() => {
   return play.blocks.reduce((a, b) => a + (b.mine ? 1 : 0) - (b.flagged ? 1 : 0), 0)
 })
 
-function newGame(difficulty: 'easy' | 'medium' | 'hard') {
-  switch (difficulty) {
+let nowDiffcult: diffcult
+function newGame(difficulty: diffcult) {
+  switch (difficulty || nowDiffcult) {
     case 'easy':
-      play.reset(9, 9, 10)
+      nowDiffcult = 'easy'
+      play.reset(9, 9, 10, nowDiffcult)
       break
     case 'medium':
-      play.reset(16, 16, 40)
+      nowDiffcult = 'medium'
+      play.reset(16, 16, 40, nowDiffcult)
       break
     case 'hard':
-      play.reset(30, 16, 99)
+      nowDiffcult = 'hard'
+      play.reset(30, 16, 99, nowDiffcult)
       break
   }
 }
@@ -37,7 +42,7 @@ watchEffect(() => {
   <div>
     Minesweeper
     <div flex="~ gap1" justify-center p4>
-      <button btn @click="play.reset()">
+      <button btn @click="newGame(nowDiffcult)">
         NEW GAME
       </button>
       <button btn @click="newGame('easy')">

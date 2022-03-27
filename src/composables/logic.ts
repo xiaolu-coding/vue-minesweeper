@@ -13,6 +13,7 @@ const directions = [
 ]
 
 type GameStatus = 'play' | 'won' | 'lose'
+export type diffcult = 'easy' | 'medium' | 'hard'
 interface GameState {
   board: BlockState[][]
   mineGenerated: boolean
@@ -25,7 +26,7 @@ export class GamePlay {
   state = ref() as Ref<GameState>
   mineGenerated = false
   gameState = ref<'play' | 'won' | 'lose'>('play')
-  constructor(public width: number, public height: number, public mines: number) {
+  constructor(public width: number, public height: number, public mines: number, public nowDiffcult: diffcult) {
     this.reset()
   }
 
@@ -38,10 +39,11 @@ export class GamePlay {
   }
 
   // 重置
-  reset(width = this.width, height = this.height, mines = this.mines) {
+  reset(width = this.width, height = this.height, mines = this.mines, nowDiffcult = this.nowDiffcult) {
     this.width = width
     this.height = height
     this.mines = mines
+    this.nowDiffcult = nowDiffcult
     this.state.value = {
       startMS: +Date.now(),
       mineGenerated: false,

@@ -2,9 +2,13 @@
 import { isDev, toggleDev } from '~/composables'
 import { GamePlay } from '~/composables/logic'
 
-const play = new GamePlay(4, 4)
+const play = new GamePlay(12, 12, 12)
 useStorage('vue-minesweeper', play.state)
 const state = computed(() => play.board)
+
+const mineCount = computed(() => {
+  return play.blocks.reduce((a, b) => a + (b.mine ? 1 : 0), 0)
+})
 
 watchEffect(() => {
   play.checkGameState()
@@ -25,6 +29,11 @@ watchEffect(() => {
         <MineBlock v-for="(block, x) in row" :key="x" :block="block" @click="play.onClick(block)" @contextmenu.prevent="play.onRightClick(block)" />
       </div>
     </div>
+
+    <div>
+      {{ mineCount }}
+    </div>
+
     <div flex="~ gap-1" justify-center>
       <button btn @click="toggleDev()">
         {{ isDev ? 'DEV' : 'NORMAL' }}

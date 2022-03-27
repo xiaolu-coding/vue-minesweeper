@@ -108,7 +108,7 @@ export class GamePlay {
     if (block.revealed)
       return
     block.flagged = !block.flagged
-    this.checkGameState()
+    // this.checkGameState()
   }
 
   onClick(block: BlockState) {
@@ -126,7 +126,7 @@ export class GamePlay {
     }
 
     this.expendZero(block)
-    this.checkGameState()
+    // this.checkGameState()
   }
 
   checkGameState() {
@@ -139,7 +139,9 @@ export class GamePlay {
         this.state.value.gameState = 'lose'
         this.showAllMines()
       }
-      else { this.state.value.gameState = 'won' }
+      else {
+        this.state.value.gameState = 'won'
+      }
     }
   }
 

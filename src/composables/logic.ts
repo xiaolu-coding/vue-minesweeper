@@ -194,6 +194,9 @@ export class GamePlay {
 
     if (status === 'lose')
       this.showAllMines()
+    setTimeout(() => {
+      alert('you lose')
+    }, 10)
   }
 
   // 显示所有炸弹

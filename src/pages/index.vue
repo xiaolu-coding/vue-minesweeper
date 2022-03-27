@@ -18,13 +18,15 @@ watchEffect(() => {
 <template>
   <div>
     Minesweeper
-    <div p5>
+    <div p5 w-full overflow-auto>
       <div
         v-for="(row, y) in state"
         :key="y"
         flex="~"
         items-center
         justify-center
+        w-max
+        ma
       >
         <MineBlock v-for="(block, x) in row" :key="x" :block="block" @click="play.onClick(block)" @contextmenu.prevent="play.onRightClick(block)" />
       </div>

@@ -63,9 +63,7 @@ export class GamePlay {
       const y = this.randomInt(0, this.height - 1)
       const block = state[y][x]
       // 点下去的周围不会有炸弹
-      if (Math.abs(initial.x - block.x) <= 1)
-        return false
-      if (Math.abs(initial.y - block.y) <= 1)
+      if (Math.abs(initial.x - block.x) <= 1 && Math.abs(initial.y - block.y) <= 1)
         return false
       if (block.mine)
         return false

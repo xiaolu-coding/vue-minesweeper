@@ -7,7 +7,7 @@ useStorage('vue-minesweeper', play.state)
 const state = $computed(() => play.board)
 
 const now = $(useNow())
-const timerMS = $computed(() => Math.round((+now - play.state.value.startMS) / 1000))
+const timerMS = $computed(() => Math.round(((play.state.value.endMS || +now) - play.state.value.startMS) / 1000))
 const mineRest = $computed(() => {
   if (!play.state.value.mineGenerated)
     return play.mines
@@ -85,5 +85,5 @@ watchEffect(() => {
       </button>
     </div> -->
   </div>
-  <Confetti :passed="play.state.value.gameState === 'won'" />
+  <Confetti :passed="play.state.value.status === 'won'" />
 </template>

@@ -12,11 +12,13 @@ const directions = [
   [1, 1], // 右下
 ]
 
+type GameStatus = 'play' | 'won' | 'lose'
 interface GameState {
   board: BlockState[][]
   mineGenerated: boolean
-  gameState: 'play' | 'won' | 'lose'
-  startMS: number
+  status: GameStatus
+  startMS?: number
+  endMS?: number
 }
 
 export class GamePlay {
@@ -43,7 +45,7 @@ export class GamePlay {
     this.state.value = {
       startMS: +Date.now(),
       mineGenerated: false,
-      gameState: 'play',
+      status: 'play',
       board: Array.from({ length: this.height }, (_, y) =>
         Array.from(
           { length: this.width },
@@ -128,7 +130,7 @@ export class GamePlay {
   }
 
   onRightClick(block: BlockState) {
-    if (this.state.value.gameState !== 'play')
+    if (this.state.value.status !== 'play')
       return
     // 如果已经打开了，没必要插旗子
     if (block.revealed)
@@ -138,7 +140,7 @@ export class GamePlay {
   }
 
   onClick(block: BlockState) {
-    if (this.state.value.gameState !== 'play')
+    if (this.state.value.status !== 'play')
       return
     if (!this.state.value.mineGenerated) {
       this.generateMines(this.board, block)
@@ -146,13 +148,11 @@ export class GamePlay {
     }
     block.revealed = true
     if (block.mine) {
-      this.state.value.gameState = 'lose'
-      this.showAllMines()
+      this.onGameOver('lose')
       return
     }
 
     this.expendZero(block)
-    // this.checkGameState()
   }
 
   checkGameState() {
@@ -161,13 +161,10 @@ export class GamePlay {
     const blocks = this.board.flat()
 
     if (blocks.every(block => block.revealed || block.flagged || block.mine)) {
-      if (blocks.some(block => block.flagged && !block.mine)) {
-        this.state.value.gameState = 'lose'
-        this.showAllMines()
-      }
-      else {
-        this.state.value.gameState = 'won'
-      }
+      if (blocks.some(block => block.flagged && !block.mine))
+        this.onGameOver('lose')
+      else
+        this.onGameOver('won')
     }
   }
 
@@ -178,6 +175,8 @@ export class GamePlay {
     if (flags === block.adjacentMines) {
       siblings.forEach((i) => {
         i.revealed = true
+        if (i.mine)
+          this.onGameOver('lose')
       })
     }
     const missingFlags = block.adjacentMines - flags
@@ -187,6 +186,14 @@ export class GamePlay {
           i.flagged = true
       })
     }
+  }
+
+  onGameOver(status: GameStatus) {
+    this.state.value.status = status
+    this.state.value.endMS = +Date.now()
+
+    if (status === 'lose')
+      this.showAllMines()
   }
 
   // 显示所有炸弹
